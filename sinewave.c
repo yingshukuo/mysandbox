@@ -50,6 +50,6 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    fprintf(stdout, "done.\n");
+    /*fprintf(stdout, "done.\n");*/
     return 0;
 }
