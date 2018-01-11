@@ -17,12 +17,24 @@
           sine wave.
     - how
         * gcc -o wavetable_synth wavetable_synth.c
+* text2sf
+    - what
+        * This program converts a list of string digits to a .wav file.
+          With the help of libportsf.
+    - how
+        * gcc -lm -lportsf -Lportsf/lib -Iportsf/inc text2sf.c -o text2sf
 * portsf
+    - what
+        * This library aims to convert values to audio format.
     - some detail
         * In line 1592 of portsf.c, it does not handle overflow issue.
           Precisely, ```fsamp``` is bounded between ```-1.0f``` and ```1.0f```.
           Then ```ssamp = (short) psf_round(fsamp * 32768);``` makes it ```32768.0f```
           before casting ```short```. OVERFLOW!
+        * Workaround: limit the maximum numbe to be less than 1.
+          16 bit: ```fsamp = min(fsamp,0.99997f);```
+          24 bit: ```fsamp = min(fsamp,0.99999995f);```
+          32 bit: ```fsamp = min(fsamp,0.9999999996f);```
 
 ## Notes
 * Check out https://github.com/andrewrk/libsoundio if some real-time audio I/O
