@@ -17,12 +17,6 @@
           sine wave.
     - how
         * gcc -o wavetable_synth wavetable_synth.c
-* text2sf
-    - what
-        * This program converts a list of string digits to a .wav file.
-          With the help of libportsf.
-    - how
-        * gcc -lm -lportsf -Lportsf/lib -Iportsf/inc text2sf.c -o text2sf
 * portsf
     - what
         * This library aims to convert values to audio format.
@@ -35,6 +29,12 @@
           16 bit: ```fsamp = min(fsamp,0.99997f);```
           24 bit: ```fsamp = min(fsamp,0.99999995f);```
           32 bit: ```fsamp = min(fsamp,0.9999999996f);```
+* text2sf
+    - what
+        * This program converts a list of string digits to a .wav file.
+          With the help of libportsf.
+    - how
+        * gcc -lm -lportsf -Lportsf/lib -Iportsf/inc text2sf.c -o text2sf
 
 ## Notes
 * Check out https://github.com/andrewrk/libsoundio if some real-time audio I/O
