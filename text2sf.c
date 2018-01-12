@@ -20,6 +20,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 /* text2sf.c :  convert text soundfile to binary using portsf library */
+// Ying-Shu modified a bit, for learning purpose.
 
 #include <stdio.h>
 #include <stdlib.h>
