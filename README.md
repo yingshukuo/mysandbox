@@ -19,12 +19,13 @@
         * gcc -o wavetable_synth wavetable_synth.c
 * portsf
     - what
-        * This library aims to convert values to audio format.
+        * This library aims to convert values to audio format. Check out more
+          at ```portsf.md```.
     - some detail
         * In line 1592 of portsf.c, it does not handle overflow issue.
           Precisely, ```fsamp``` is bounded between ```-1.0f``` and ```1.0f```.
-          Then ```ssamp = (short) psf_round(fsamp * 32768);``` makes it ```32768.0f```
-          before casting ```short```. OVERFLOW!
+          Then ```ssamp = (short) psf_round(fsamp * 32768);``` makes it
+          ```32768.0f``` before casting ```short```. OVERFLOW!
         * Workaround: limit the maximum numbe to be less than 1.
           16 bit: ```fsamp = min(fsamp,0.99997f);```
           24 bit: ```fsamp = min(fsamp,0.99999995f);```

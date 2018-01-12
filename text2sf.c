@@ -20,27 +20,38 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 /* text2sf.c :  convert text soundfile to binary using portsf library */
-// Ying-Shu modified a bit, for learning purpose.
+// yingshukuo modified a bit, for learning purpose.
+// how:  ./text2sf infile outfile srate(Hz) nchan gain
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <portsf.h>
 
 
-enum {ARG_PROGNAME,ARG_INFILE,ARG_OUTFILE, ARG_SR,ARG_CHANS,ARG_GAIN,ARG_NARGS};
+enum {
+    ARG_PROGNAME,
+    ARG_INFILE,
+    ARG_OUTFILE,
+    ARG_SR,
+    ARG_CHANS,
+    ARG_GAIN,
+    ARG_NARGS
+};
 
 /* read one multi-channel frame */
 
-int readframe(FILE* fp,float* frame,int chans){
+int readframe(FILE* fp, float* frame, int chans) {
     int i;
     int samps=0, got;
-    for(i=0;i < chans;i++){
-        got = fscanf(fp,"%f",&frame[i]);
-        if(got==EOF)
+    for (i = 0; i < chans; i++){
+        got = fscanf(fp, "%f", &frame[i]);
+        if (got==EOF)
             return -1;
         samps += got;
     }
-    if (got == chans)
+    // yingshukuo
+    // got => samps
+    if (samps == chans)
         return 1;
     else 
         return 0; /* error! */
