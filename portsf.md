@@ -15,6 +15,8 @@ For complete list, please check out ```portsf.h``` directly
 * psf_format = Audio file format (unk, stdwave, wave_ex, aiff, aifc)
 * psf_channelformat = Audio channel format
 * psf_props = srate + nchan + psf_stype + psf_format + psf_channelformat
+* psffile (not in .h file) = fd + fpath + currpos + psf_stype + psf_format +
+                             psf_channelformat + ...
 
 ### Functions
 * int psf_init();
@@ -47,4 +49,6 @@ For complete list, please check out ```portsf.h``` directly
 * psf_format psf_getFormatExt(const char *path);
     - find the soundfile format from the filename extension
 
-
+## What does it do?
+In short, portsf plays with up to 64 (psf_maxfiles) audio files, by reading,
+writing samples in those audio files.

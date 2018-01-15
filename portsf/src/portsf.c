@@ -451,9 +451,9 @@ __inline long psf_round(double fval)
 {
     int result;
     _asm{
-        fld    fval
-            fistp    result
-            mov    eax,result
+        fld     fval
+        fistp   result
+        mov     eax,result
     }
     return result;
 }
@@ -495,8 +495,7 @@ int stricmp(const char *a, const char *b)
     return -1;
 }
 
-    int
-strnicmp(const char *a, const char *b, const int length)
+int strnicmp(const char *a, const char *b, const int length)
 {
     int len = length;
 
