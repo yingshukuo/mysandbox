@@ -4,7 +4,7 @@
 # how:  make / make [program-name] / make clean / make veryclean
 
 .PHONY: all clean portsf
-all: sinewave wavetable_synth portsf text2sf
+all: sinewave wavetable_synth portsf text2sf lowpass
 
 sinewave:
 	gcc -o sinewave sinewave.c
@@ -18,8 +18,11 @@ portsf:
 text2sf: portsf
 	gcc -lm -lportsf -Lportsf/lib -Iportsf/inc text2sf.c -o text2sf
 
+lowpass: portsf
+	gcc -lm -lportsf -Lportsf/lib -Iportsf/inc lowpass.c -o lowpass
+
 clean:
-	rm -f sinewave wavetable_synth text2sf
+	rm -f sinewave wavetable_synth text2sf lowpass
 	$(MAKE) -C portsf clean
 
 veryclean: clean

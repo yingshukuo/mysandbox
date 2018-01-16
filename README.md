@@ -36,6 +36,12 @@
           With the help of libportsf.
     - how
         * gcc -lm -lportsf -Lportsf/lib -Iportsf/inc text2sf.c -o text2sf
+* lowpass
+    - what
+        * This program applies a low pass filter to a .wav file.
+          With the help of libportsf.
+    - how
+        * gcc -lm -lportsf -Lportsf/lib -Iportsf/inc lowpass.c -o lowpass
 
 ## Annoying Issue
 * vim-autoformat
