@@ -31,6 +31,7 @@ enum {
 //     a1 = (K-1)/(K+1)
 int main(int argc, char *argv[]) {
     // initialize
+    int process = 0;
     int cutoff = 0;
     int ret = 0;
     int input_fd = 0;
@@ -42,30 +43,34 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Usage: lowpass path/to/input.wav path/to/output.wav "\
                         "cutoff[Hz]\n");
         return -1;
-    }
-    cutoff = atoi(argv[ARG_CUTOFF]);
+    } else {
+        cutoff = atoi(argv[ARG_CUTOFF]);
 #ifdef _DEBUG
-    printf("input: %s %s %d\n", argv[ARG_INFILE], argv[ARG_OUTFILE], cutoff);
+        printf("input: %s %s %d\n", argv[ARG_INFILE], argv[ARG_OUTFILE], cutoff);
 #endif
+    }
 
     // allocate spaces
     input_props = malloc(sizeof(PSF_PROPS));
     if (input_props == NULL) {
         fprintf(stderr, "Error: can not allocate memory.\n");
-        return -1; //FIXME: errno
+        ret = -1; //FIXME: errno
+        goto exit;
+    } else {
+        process++;
     }
     
     // start system
     ret = psf_init();
     if (ret != 0) {
         fprintf(stderr, "Error %d: can not start the portsf system.", ret);
-        // deallocate spaces FIXME
-        free(input_props);
-        return ret;
-    }
+        goto exit;
+    } else {
+        process++;
 #ifdef _DEBUG
-    printf("open system success\n");
+        printf("open system success\n");
 #endif
+    }
     
 
     // open input file
@@ -73,14 +78,14 @@ int main(int argc, char *argv[]) {
     if (ret < 0) {
         fprintf(stderr, "Error %d: can not open input file %s.\n",\
                         ret, argv[ARG_INFILE]);
-        // deallocate spaces FIXME
-        free(input_props);
-        return ret;
-    }
-    input_fd = ret;
+        goto exit;
+    } else {
+        input_fd = ret;
+        process++;
 #ifdef _DEBUG
-    printf("input_fd = %d\n", input_fd);
+        printf("input_fd = %d\n", input_fd);
 #endif
+    }
 
     // create output file
     ret = psf_sndCreate(argv[ARG_OUTFILE], input_props,\
@@ -88,14 +93,14 @@ int main(int argc, char *argv[]) {
     if (ret < 0) {
         fprintf(stderr, "Error %d: can not create output file %s.\n",\
                         ret, argv[ARG_OUTFILE]);
-        // deallocate spaces FIXME
-        free(input_props);
-        return ret;
-    }
-    output_fd = ret;
+        goto exit;
+    } else {
+        output_fd = ret;
+        process++;
 #ifdef _DEBUG
-    printf("output_fd = %d\n", output_fd);
+        printf("output_fd = %d\n", output_fd);
 #endif
+    }
     
     // read in a block based fashion
     //   in which do lowpass filter
@@ -113,46 +118,51 @@ int main(int argc, char *argv[]) {
 
     // take care of the last block
 
+
+
+
+exit: 
     // close output file
-    ret = psf_sndClose(output_fd);
-    if (ret != 0) {
-        fprintf(stderr, "Error %d: can not close output file %s\n",\
-                        ret, argv[ARG_OUTFILE]);
-        // deallocate spaces FIXME
-        free(input_props);
-        return ret;
-    }
+    if (process >= 4) {
+        ret = psf_sndClose(output_fd);
+        if (ret != 0) {
+            fprintf(stderr, "Error %d: can not close output file %s\n",\
+                            ret, argv[ARG_OUTFILE]);
+        } else {
 #ifdef _DEBUG
-    printf("close output file success\n");
+        printf("close output file success\n");
 #endif
+        }
+    }
     
     // close input file
-    ret = psf_sndClose(input_fd);
-    if (ret != 0) {
-        fprintf(stderr, "Error %d: can not close input file %s\n",\
-                        ret, argv[ARG_INFILE]);
-        // deallocate spaces FIXME
-        free(input_props);
-        return ret;
-    }
+    if (process >= 3) {
+        ret = psf_sndClose(input_fd);
+        if (ret != 0) {
+            fprintf(stderr, "Error %d: can not close input file %s\n",\
+                            ret, argv[ARG_INFILE]);
+        } else {
 #ifdef _DEBUG
-    printf("close input file success\n");
+            printf("close input file success\n");
 #endif
+        }
+    }
 
     // end system
-    ret = psf_finish();
-    if (ret != 0) {
-        fprintf(stderr, "Error %d: can not terminate the system.", ret);
-        // deallocate spaces FIXME
-        free(input_props);
-        return ret;
-    }
+    if (process >= 2) {
+        ret = psf_finish();
+        if (ret != 0) {
+            fprintf(stderr, "Error %d: can not terminate the system.", ret);
+        } else {
 #ifdef _DEBUG
-    printf("close system success\n");
+            printf("close system success\n");
 #endif
+        }
+    }
     
     // deallocate spaces
-    free(input_props);
+    if (process >= 1)
+        free(input_props);
 
     return 0;
 }
