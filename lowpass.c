@@ -34,6 +34,7 @@ int main(int argc, char *argv[]) {
     int cutoff = 0;
     int ret = 0;
     int input_fd = 0;
+    int output_fd = 0;
     PSF_PROPS *input_props = NULL;
 
     // argument check and assignment
@@ -68,11 +69,10 @@ int main(int argc, char *argv[]) {
     
 
     // open input file
-    /*int psf_sndOpen(const char *path,PSF_PROPS *props, int rescale);*/
     ret = psf_sndOpen(argv[ARG_INFILE], input_props, 0);
     if (ret < 0) {
         fprintf(stderr, "Error %d: can not open input file %s.\n",\
-                        input_fd, argv[ARG_INFILE]);
+                        ret, argv[ARG_INFILE]);
         // deallocate spaces FIXME
         free(input_props);
         return ret;
@@ -83,7 +83,19 @@ int main(int argc, char *argv[]) {
 #endif
 
     // create output file
-    /*int psf_sndCreate(const char *path,const PSF_PROPS *props, int clip_floats,int minheader,int mode);*/
+    ret = psf_sndCreate(argv[ARG_OUTFILE], input_props,\
+                        1, 0, PSF_CREATE_WRONLY);
+    if (ret < 0) {
+        fprintf(stderr, "Error %d: can not create output file %s.\n",\
+                        ret, argv[ARG_OUTFILE]);
+        // deallocate spaces FIXME
+        free(input_props);
+        return ret;
+    }
+    output_fd = ret;
+#ifdef _DEBUG
+    printf("output_fd = %d\n", output_fd);
+#endif
     
     // read in a block based fashion
     //   in which do lowpass filter
@@ -102,6 +114,17 @@ int main(int argc, char *argv[]) {
     // take care of the last block
 
     // close output file
+    ret = psf_sndClose(output_fd);
+    if (ret != 0) {
+        fprintf(stderr, "Error %d: can not close output file %s\n",\
+                        ret, argv[ARG_OUTFILE]);
+        // deallocate spaces FIXME
+        free(input_props);
+        return ret;
+    }
+#ifdef _DEBUG
+    printf("close output file success\n");
+#endif
     
     // close input file
     ret = psf_sndClose(input_fd);
