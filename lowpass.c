@@ -7,12 +7,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <portsf.h>
 
 // debugging
-#ifndef _DEBUG
-#define _DEBUG
-#endif
+/*#ifndef _DEBUG*/
+/*#define _DEBUG*/
+/*#endif*/
+
+#define pi 3.141592653589
 
 enum {
     ARG_NAME,   // name of this program
@@ -32,11 +35,20 @@ enum {
 int main(int argc, char *argv[]) {
     // initialize
     int process = 0;
-    int cutoff = 0;
+    int iter = 0;
     int ret = 0;
     int input_fd = 0;
     int output_fd = 0;
+    unsigned int cutoff = 0;
+
+    unsigned int i;
+    static const unsigned int frame_size = 1024;
+
     PSF_PROPS *input_props = NULL;
+    double *input_buf = NULL;
+    double *output_buf = NULL;
+    double v[2] = {0};
+    double K, a1, b0, b1;
 
     // argument check and assignment
     if (argc != ARG_NARGS) {
@@ -51,8 +63,10 @@ int main(int argc, char *argv[]) {
     }
 
     // allocate spaces
-    input_props = malloc(sizeof(PSF_PROPS));
-    if (input_props == NULL) {
+    input_props = (PSF_PROPS*) malloc(sizeof(PSF_PROPS));
+    input_buf = (double*) malloc(sizeof(double) * frame_size);
+    output_buf = (double*) malloc(sizeof(double) * frame_size);
+    if (input_props == NULL || input_buf == NULL || output_buf == NULL) {
         fprintf(stderr, "Error: can not allocate memory.\n");
         ret = -1; //FIXME: errno
         goto exit;
@@ -79,11 +93,21 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Error %d: can not open input file %s.\n",\
                         ret, argv[ARG_INFILE]);
         goto exit;
+    } else if (input_props->chans > 1) {
+        fprintf(stderr, "Error: we do not handle multi channels for now.\n");
+        ret = -1; // FIXME: support multichannel
+        goto exit;
     } else {
         input_fd = ret;
         process++;
 #ifdef _DEBUG
         printf("input_fd = %d\n", input_fd);
+        printf("input_props: \n");
+        printf("\tsrate = %d\n", input_props->srate);
+        printf("\tchans = %d\n", input_props->chans);
+        printf("\tsamptype = %d\n", input_props->samptype);
+        printf("\tformat = %d\n", input_props->format);
+        printf("\tchformat = %d\n", input_props->chformat);
 #endif
     }
 
@@ -101,6 +125,12 @@ int main(int argc, char *argv[]) {
         printf("output_fd = %d\n", output_fd);
 #endif
     }
+
+    // get coefficients
+    K   = tan(pi * cutoff / input_props->srate);
+    b0  =  K      / (K + 1);
+    b1  =  K      / (K + 1);
+    a1  = (K - 1) / (K + 1);
     
     // read in a block based fashion
     //   in which do lowpass filter
@@ -115,8 +145,43 @@ int main(int argc, char *argv[]) {
     //   since lowpass filter only looks 1 previous signal,
     //   we only need 2 buffers representing v[n-1] (initially v[0-1] = 0)
     //   and v[n].
+    ret = psf_sndReadDoubleFrames(input_fd, input_buf, frame_size);
+    while (ret == frame_size) {
+#ifdef _DEBUG
+        printf("%d: %lf\t%lf\n", iter, input_buf[0], output_buf[0]);
+#endif
+        // lowpass filter
+        for (i = 0; i < frame_size; i++) {
+            v[1] = input_buf[i] - a1 * v[0];
+            output_buf[i] = b0 * v[1] + b1 * v[0];
+        }
+
+        // write audio to output file
+        ret = psf_sndWriteDoubleFrames(output_fd, output_buf, frame_size);
+        if (ret != frame_size) {
+            fprintf(stderr, "Error: can not write to output file properly.\n");
+            goto exit;
+        }
+        // prepare for next iteration
+        ret = psf_sndReadDoubleFrames(input_fd, input_buf, frame_size);
+        iter++;
+    }
+#ifdef _DEBUG
+    printf("\n%d: %lf\t%lf\n", iter, input_buf[0], output_buf[0]);
+#endif
 
     // take care of the last block
+    // lowpass filter
+    for (i = 0; i < (unsigned int)ret; i++) {
+        v[1] = input_buf[i] - a1 * v[0];
+        output_buf[i] = b0 * v[1] + b1 * v[0];
+    }
+    // write audio to output file
+    ret = psf_sndWriteDoubleFrames(output_fd, output_buf, i);
+    if (ret != (int)i) {
+        fprintf(stderr, "Error: can not write to output file properly.\n");
+        goto exit;
+    }
 
 
 
@@ -163,6 +228,8 @@ exit:
     // deallocate spaces
     if (process >= 1)
         free(input_props);
+        free(input_buf);
+        free(output_buf);
 
     return 0;
 }
