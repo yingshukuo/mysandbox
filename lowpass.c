@@ -228,8 +228,11 @@ exit:
     // deallocate spaces
     if (process >= 1)
         free(input_props);
+        input_props = NULL;
         free(input_buf);
+        input_buf = NULL;
         free(output_buf);
+        output_buf = NULL;
 
     return 0;
 }
