@@ -3,6 +3,13 @@
 // what: This progarm aims to act as a simple low pass filter.
 //       Given a wav file, expected output file name, and the cutoff frequency,
 //       the program will spit out the filtered wav file to the output file.
+// what2:The implementation of lowpass filter is as following...
+//       y[n] = b0 * v[n] + b1 * v[n-1]
+//       v[n] =  1 * x[n] - a1 * v[n-1]
+//       where
+//           b0 =  K   /(K+1)
+//           b1 =  K   /(K+1), K = tan(pi * fc / fs), fc = cutoff, fs = sample
+//           a1 = (K-1)/(K+1)
 // how:  ./lowpass path/to/input.wav path/to/output.wav cutoff[Hz]
 
 #include <stdio.h>
@@ -25,13 +32,6 @@ enum {
     ARG_NARGS   // number of arguments
 };
 
-// lowpass filter:
-//   y[n] = b0 * v[n] + b1 * v[n-1]
-//   v[n] =  1 * x[n] - a1 * v[n-1]
-//   where
-//     b0 =  K   /(K+1)
-//     b1 =  K   /(K+1), K = tan(pi * fc / fs), fc = cutoff, fs = sample
-//     a1 = (K-1)/(K+1)
 int main(int argc, char *argv[]) {
     // initialize
     int process = 0;
